@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "network-security-scanner"
+version = "1.0.0"
+description = "Zero-dependency network security scanner: open ports, service detection, risk checks and KEV/EPSS-prioritised CVEs"
+requires-python = ">=3.9"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Deepanshu Kapoor" }]
+keywords = ["security", "port-scanner", "network", "cve", "vulnerability", "kev", "epss"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Topic :: Security",
+  "Environment :: Console",
+]
+
+[project.urls]
+Homepage = "https://github.com/kapoordeepanshu/network-security-scanner"
+Issues = "https://github.com/kapoordeepanshu/network-security-scanner/issues"
+Changelog = "https://github.com/kapoordeepanshu/network-security-scanner/blob/main/CHANGELOG.md"
+
+[project.scripts]
+netscanner = "netscanner.cli:main"
+
+[tool.setuptools]
+packages = ["netscanner"]

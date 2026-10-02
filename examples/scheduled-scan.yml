@@ -1,0 +1,51 @@
+# Example: nightly scan of your own infrastructure with change detection.
+# Copy to .github/workflows/ in a PRIVATE repository (results describe your network).
+# Set the SCAN_TARGETS repository variable, and optionally the NVD_API_KEY secret.
+# GitHub-hosted runners can only reach internet-facing hosts; use a self-hosted
+# runner to scan internal networks.
+name: nightly-network-scan
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install git+https://github.com/kapoordeepanshu/network-security-scanner.git
+
+      - name: Restore previous scan
+        uses: actions/cache/restore@v4
+        with:
+          path: baseline.json
+          key: netscan-baseline-${{ github.run_id }}
+          restore-keys: netscan-baseline-
+
+      - name: Scan
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+          TARGETS: ${{ vars.SCAN_TARGETS }}
+        run: |
+          ARGS="--cve --json current.json --html report.html --fail-on critical"
+          if [ -f baseline.json ]; then ARGS="$ARGS --baseline baseline.json"; fi
+          netscanner "$TARGETS" $ARGS
+
+      - name: Save this scan as the next baseline
+        if: always()
+        run: if [ -f current.json ]; then cp current.json baseline.json; fi
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: baseline.json
+          key: netscan-baseline-${{ github.run_id }}
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: network-scan-report
+          path: report.html
